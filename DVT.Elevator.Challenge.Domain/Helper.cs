@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DVT.Elevator.Challenge.Domain
 {
-    internal static class Helper
+    public static class Helper
     {
         public static string GetMovement(this MovementEnum movement, int? PersonOnBoard)
         {

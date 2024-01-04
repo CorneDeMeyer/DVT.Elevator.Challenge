@@ -19,6 +19,7 @@ namespace DVT.Elevator.Challenge.Domain.Models.Base
             Console.WriteLine($"Currently On Level: {CurrentLevel} out of {MaxLevel}");
             Console.WriteLine($"People currently in Lift: {PeopleInLift?.Count}");
             Console.WriteLine($"Movement Status: ", Movement.GetMovement(PeopleInLift?.Count));
+            Console.WriteLine("===============================================================");
         }
     }
 }

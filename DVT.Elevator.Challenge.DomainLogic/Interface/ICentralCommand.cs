@@ -9,7 +9,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Interface
         Task Setup();
         Task MoveElevator(BaseElevator elevator);
         Task PersonRequest(Person person);
-
+        Task CheckElevators();
         Task DisplayElevatorPosition();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace DVT.Elevator.Challenge.Domain.Models
 {
-    public class PassengerElevator : BaseElevator
+    public class ElevatorModel : BaseElevator
     {
     }
 }
