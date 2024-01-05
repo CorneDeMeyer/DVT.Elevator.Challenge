@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/DVT.Elevator.Challenge/v17
+/.vs
+/DVT.Elevator.Challenge/bin/Debug/net8.0
+/DVT.Elevator.Challenge/obj
+/DVT.Elevator.Challenge.Domain/bin/Debug/net8.0
+/DVT.Elevator.Challenge.Domain/obj
+/DVT.Elevator.Challenge.DomainLogic/bin/Debug/net8.0
+/DVT.Elevator.Challenge.DomainLogic/obj
