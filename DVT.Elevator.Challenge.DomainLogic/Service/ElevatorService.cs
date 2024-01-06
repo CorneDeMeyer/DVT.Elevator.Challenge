@@ -14,7 +14,6 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
         public async Task Setup()
         {
             await SetupElevators();
-            await DisplayElevatorPosition();
         }
 
         private Task SetupElevators()
@@ -33,31 +32,45 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                         CurrentLevel = rand.Next(_config.NumberOfFloors),
                         PeopleInLift = new List<Person>(),
                         ZoneLocated = elevator.LocationZone,
-                        Movement = Domain.Enums.MovementEnum.Stationery
+                        Movement = Domain.Enums.MovementEnum.Stationery,
+                        Enabled = elevator.IsEnabled
                     });
                 }
             }
             return Task.CompletedTask;
         }
 
-        public async Task CheckElevators()
+        public Task CheckElevators()
         {
             foreach (var elevator in _elevators.Where(x => x.Movement != Domain.Enums.MovementEnum.Stationery))
             {
-                await MoveElevator(elevator);
+                MoveElevator(elevator);
             }
+            return Task.CompletedTask;
         }
 
         public Task DisplayElevatorPosition()
         {
             foreach (var elevator in _elevators)
             {
-                elevator.ElevatorStatus();
+                CentralCommand.consoleInfo.lastResult.AppendLine($"Elevator: {elevator.ElevatorDesignation}");
+                CentralCommand.consoleInfo.lastResult.AppendLine($"Zone: {elevator.ZoneLocated.ToString()}");
+                if (elevator.Enabled)
+                {
+                    CentralCommand.consoleInfo.lastResult.AppendLine($"Currently On Level: {elevator.CurrentLevel} out of {elevator.MaxLevel}");
+                    CentralCommand.consoleInfo.lastResult.AppendLine($"People currently in Lift: {elevator.PeopleInLift?.Count}");
+                    CentralCommand.consoleInfo.lastResult.AppendLine($"Movement Status: {elevator.Movement.GetMovement(elevator.PeopleInLift?.Count)}");
+                }
+                else
+                {
+                    CentralCommand.consoleInfo.lastResult.AppendLine("Status: Not Available");
+                }
+                CentralCommand.consoleInfo.lastResult.AppendLine("===============================================================");
             }
             return Task.CompletedTask;
         }
 
-        public async Task MoveElevator(BaseElevator elevatorOnTheMove)
+        public void MoveElevator(BaseElevator elevatorOnTheMove)
         {
             int? peopleGettingOff = 0;
             switch (elevatorOnTheMove.Movement)
@@ -81,8 +94,46 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                 default:
                     break;
             }
-            await Console.Out.WriteLineAsync($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentLevel}, elevator is " +
+            CentralCommand.consoleInfo.outputBuffer.Add($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentLevel}, elevator is " +
                         $"{elevatorOnTheMove?.Movement.GetMovement(elevatorOnTheMove?.PeopleInLift?.Count)} with ${elevatorOnTheMove?.PeopleInLift?.Count} still on");
+        }
+
+        public Task<ElevatorReponse> ElevatorRequest(int zone, int floor)
+        {
+            var respone = new ElevatorReponse
+            { 
+                Floor = floor,
+                Zone = zone,
+                Message = "No Elevator Available",
+                Movement = Domain.Enums.MovementEnum.Stationery
+            };
+
+            if (_elevators != null && _elevators.Any(elevator => elevator.Enabled))
+            {
+                if (_elevators.Any(elevator => elevator?.PeopleInLift?.Count < elevator?.PersonCapacity))
+                {
+
+                }
+                else
+                { }
+            }
+
+            return Task.FromResult(respone);
+        }
+
+        public Task<ElevatorReponse> ElevatorDisableRequest(int zone, string designation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ElevatorReponse> ElevatorEnableRequest(int zone, string designation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ElevatorReponse> ElevatorDoorsClosed(decimal weight)
+        {
+            throw new NotImplementedException();
         }
     }
 }

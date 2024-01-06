@@ -1,6 +1,4 @@
-﻿using DVT.Elevator.Challenge.Domain.Models;
-using DVT.Elevator.Challenge.Domain.Models.Config;
-using DVT.Elevator.Challenge.DomainLogic.Interface;
+﻿using DVT.Elevator.Challenge.DomainLogic.Interface;
 
 namespace DVT.Elevator.Challenge.DomainLogic.Service
 {
@@ -10,6 +8,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
 
         public void Run()
         {
+            Console.WriteLine("Starting Elevator Service...");
             try
             {
                 // Run Setup 

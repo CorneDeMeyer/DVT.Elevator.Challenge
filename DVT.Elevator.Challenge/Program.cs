@@ -19,6 +19,7 @@ var _host = Host.CreateDefaultBuilder().ConfigureServices(services => {
     services.AddSingleton<IApplication, App>();
     services.AddSingleton<ICentralCommand, CentralCommand>();
     services.AddTransient<IElevatorService, ElevatorService>();
+    services.AddTransient<IElevatorClient, ElevatorClient>();
     services.AddSingleton(new AppConfiguration(
         config.GetValue<TimeSpan>("ElevatorFloorMove"),
         config.GetValue<int>("NumberOfFloors"),

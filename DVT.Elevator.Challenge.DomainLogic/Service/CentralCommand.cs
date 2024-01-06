@@ -18,6 +18,23 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
         public void Start()
         {
             _consoleWriter.Start();
+            consoleInfo.outputBuffer.Add("Running.");
+            _elevatorService?.DisplayElevatorPosition().Wait();
+            while (true)
+            {
+                var key = Console.ReadKey(true);
+                lock (consoleInfo)
+                {
+                    if (key.Key == ConsoleKey.Enter)
+                    {
+                        consoleInfo.commandReaty = true;
+                    }
+                    else
+                    {
+                        consoleInfo.sbRead.Append(key.KeyChar.ToString());
+                    }
+                }
+            }
         }
 
         private static void ConsoleWriter()
@@ -27,6 +44,14 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                 lock (consoleInfo)
                 {
                     Console.Clear();
+                    if (consoleInfo.lastResult.Length > 5000)
+                    {
+                        consoleInfo.lastResult.Clear();
+                        if (!string.IsNullOrEmpty(consoleInfo.lastCommand))
+                        {
+                            consoleInfo.lastCommand = string.Empty;
+                        }
+                    }
                     if (consoleInfo.outputBuffer[0].Length > 20)
                     {
                         consoleInfo.outputBuffer[0] = "Currently Running.";
@@ -58,14 +83,19 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                                 consoleInfo.lastResult.Append("Elevator Enabled");
                                 break;
                             case "cls":
-                                consoleInfo.outputBuffer = [];
+                                consoleInfo.outputBuffer.Clear();
+                                consoleInfo.outputBuffer.Add("Running.");
+                                consoleInfo.lastResult.Clear();
                                 break;                                    
                             case "?":
                                 consoleInfo.lastResult.AppendLine("Available commands are:");
-                                consoleInfo.lastResult.AppendLine("ls       List All Elevators and Details");
-                                consoleInfo.lastResult.AppendLine("disable  Disable Elevators");
-                                consoleInfo.lastResult.AppendLine("enable   Enable Elevators");
-                                consoleInfo.lastResult.AppendLine("cls      Clear");
+                                consoleInfo.lastResult.AppendLine("==========================================");
+                                consoleInfo.lastResult.AppendLine("ls       - List All Elevators and Details");
+                                consoleInfo.lastResult.AppendLine("disable  - Disable Elevators");
+                                consoleInfo.lastResult.AppendLine("enable   - Enable Elevators");
+                                consoleInfo.lastResult.AppendLine("cls      - Clear Console");
+                                consoleInfo.lastResult.AppendLine("==========================================");
+                                consoleInfo.lastResult.AppendLine("Note! Logs limit to 5000 characters");
                                 break;
                             default:
                                 consoleInfo.lastResult.Append("invalid command, type ? to see command list");
@@ -75,7 +105,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                     Console.WriteLine(consoleInfo.lastCommand);
                     Console.WriteLine(consoleInfo.lastResult);
                     Console.WriteLine();
-                    Console.Write("Command>");
+                    Console.Write(">");
                     Console.WriteLine(consoleInfo.sbRead.ToString());
                     Console.WriteLine();
                     Console.WriteLine();
