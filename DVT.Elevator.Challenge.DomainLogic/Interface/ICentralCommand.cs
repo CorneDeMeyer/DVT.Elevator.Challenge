@@ -6,10 +6,6 @@ namespace DVT.Elevator.Challenge.DomainLogic.Interface
 {
     public interface ICentralCommand
     {
-        Task Setup();
-        Task MoveElevator(BaseElevator elevator);
-        Task PersonRequest(Person person);
-        Task CheckElevators();
-        Task DisplayElevatorPosition();
+        Task Start();
     }
 }

@@ -1,102 +1,87 @@
 ﻿using DVT.Elevator.Challenge.DomainLogic.Interface;
-using DVT.Elevator.Challenge.Domain.Models.Config;
-using DVT.Elevator.Challenge.Domain.Models.Base;
 using DVT.Elevator.Challenge.Domain.Models;
-using DVT.Elevator.Challenge.Domain;
 
 namespace DVT.Elevator.Challenge.DomainLogic.Service
 {
-    public class CentralCommand : ICentralCommand
+    public class CentralCommand: ICentralCommand
     {
-        private readonly AppConfiguration _config;
+        public static ConsoleInfo consoleInfo = new ConsoleInfo();
+        private Thread _consoleWriter = new Thread(new ThreadStart(ConsoleWriter));
+        private static IElevatorService? _elevatorService; 
 
-        private List<BaseElevator> _elevators;
-
-        public CentralCommand(AppConfiguration config)
-        {
-            _config = config;
-            _elevators = [];
+        public CentralCommand(IElevatorService elevatorService)
+        { 
+            _elevatorService = elevatorService;
+            _elevatorService.Setup();
         }
 
-        // Setup Elevators and People to use elevators
-        public async Task Setup()
+        public Task Start()
         {
-            await SetupElevators();
-            await DisplayElevatorPosition();
+            throw new NotImplementedException();
         }
 
-        private Task SetupElevators()
+        private static void ConsoleWriter()
         {
-            var rand = new Random();
-            if (_config.ElevatorConfig.Length > 0)
+            while (true)
             {
-                foreach (var elevator in _config.ElevatorConfig)
+                lock (consoleInfo)
                 {
-                    _elevators.Add(new ElevatorModel
+                    Console.Clear();
+                    if (consoleInfo.outputBuffer[0].Length > 20)
                     {
-                        ElevatorDesignation = elevator.ElevatorDesignation,
-                        WeightCapacity = elevator.WeightCapacity,
-                        PersonCapacity = elevator.PersonCapacity,
-                        MaxLevel = elevator.MaxLevelReached,
-                        CurrentLevel = rand.Next(_config.NumberOfFloors),
-                        PeopleInLift = new List<Person>(),
-                        ZoneLocated = elevator.LocationZone,
-                        Movement = Domain.Enums.MovementEnum.Stationery
-                    });
+                        consoleInfo.outputBuffer[0] = "Currently Running.";
+                    }
+                    else
+                    {
+                        consoleInfo.outputBuffer[0] += ".";
+                    }
+                    foreach (var item in consoleInfo.outputBuffer)
+                    {
+                        Console.WriteLine(item);
+                    }
+                    Console.WriteLine("--------------------------------------------------------------");
+                    if (consoleInfo.commandReaty)
+                    {
+                        consoleInfo.commandReaty = false;
+                        consoleInfo.lastCommand = consoleInfo.sbRead.ToString();
+                        consoleInfo.sbRead.Clear();
+                        consoleInfo.lastResult.Clear();
+                        switch (consoleInfo.lastCommand)
+                        {
+                            case "ls":
+                                _elevatorService?.DisplayElevatorPosition().Wait();
+                                break;
+                            case "disable":
+                                consoleInfo.lastResult.Append("Elevator Disabled");
+                                break;
+                            case "enable":
+                                consoleInfo.lastResult.Append("Elevator Enabled");
+                                break;
+                            case "cls":
+                                consoleInfo.outputBuffer = [];
+                                break;                                    
+                            case "?":
+                                consoleInfo.lastResult.AppendLine("Available commands are:");
+                                consoleInfo.lastResult.AppendLine("ls       List All Elevators and Details");
+                                consoleInfo.lastResult.AppendLine("disable  Disable Elevators");
+                                consoleInfo.lastResult.AppendLine("enable   Enable Elevators");
+                                consoleInfo.lastResult.AppendLine("cls      Clear");
+                                break;
+                            default:
+                                consoleInfo.lastResult.Append("invalid command, type ? to see command list");
+                                break;
+                        }
+                    }
+                    Console.WriteLine(consoleInfo.lastCommand);
+                    Console.WriteLine(consoleInfo.lastResult);
+                    Console.WriteLine();
+                    Console.Write("Command>");
+                    Console.WriteLine(consoleInfo.sbRead.ToString());
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
                 }
-            }
-            return Task.CompletedTask;
-        }
-
-        public async Task MoveElevator(BaseElevator elevatorOnTheMove)
-        {
-            int? peopleGettingOff = 0;
-            switch (elevatorOnTheMove.Movement)
-            {
-                case Domain.Enums.MovementEnum.Down:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == 0)
-                    {
-                        elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
-                    }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
-                    break;
-                case Domain.Enums.MovementEnum.Up:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == elevatorOnTheMove.MaxLevel)
-                    {
-                        elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
-                    }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
-
-                    break;
-                default:
-                    break;
-            }
-            await Console.Out.WriteLineAsync($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentLevel}, elevator is " +
-                        $"{elevatorOnTheMove?.Movement.GetMovement(elevatorOnTheMove?.PeopleInLift?.Count)} with ${elevatorOnTheMove?.PeopleInLift?.Count} still on");
-        }
-
-        public async Task PersonRequest(Person person)
-        {
-
-            await Console.Out.WriteLineAsync();
-        }
-
-        public Task DisplayElevatorPosition()
-        {
-            foreach (var elevator in _elevators) 
-            {
-                elevator.ElevatorStatus();
-            }
-            return Task.CompletedTask;
-        }
-
-        public async Task CheckElevators()
-        {
-            foreach (var elevator in _elevators.Where(x => x.Movement != Domain.Enums.MovementEnum.Stationery))
-            {
-                await MoveElevator(elevator);
+                Thread.Sleep(1000);
             }
         }
     }
