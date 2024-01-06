@@ -4,25 +4,21 @@ using DVT.Elevator.Challenge.DomainLogic.Interface;
 
 namespace DVT.Elevator.Challenge.DomainLogic.Service
 {
-    public class App(ICentralCommand centralCommand, AppConfiguration configuration) : IApplication
+    public class App(ICentralCommand centralCommand) : IApplication
     {
         private readonly ICentralCommand _command = centralCommand;
-        private readonly AppConfiguration _configuration = configuration;
 
-        public async Task Run()
+        public void Run()
         {
-            var task = new PeriodicTimer(_configuration.RefreshTime);
-
             try
             {
                 // Run Setup 
-                await _command.Start();
+                _command.Start();
 
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                task.Dispose();
             }
         }
 

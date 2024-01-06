@@ -6,6 +6,6 @@ namespace DVT.Elevator.Challenge.DomainLogic.Interface
 {
     public interface ICentralCommand
     {
-        Task Start();
+        void Start();
     }
 }

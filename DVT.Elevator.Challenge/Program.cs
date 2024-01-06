@@ -29,4 +29,4 @@ var _host = Host.CreateDefaultBuilder().ConfigureServices(services => {
 
 // Start the application 
 var app = _host.Services.GetRequiredService<IApplication>();
-await app.Run();
+app.Run();

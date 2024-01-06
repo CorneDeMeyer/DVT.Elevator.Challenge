@@ -15,9 +15,9 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
             _elevatorService.Setup();
         }
 
-        public Task Start()
+        public void Start()
         {
-            throw new NotImplementedException();
+            _consoleWriter.Start();
         }
 
         private static void ConsoleWriter()
