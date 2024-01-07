@@ -3,6 +3,7 @@ using DVT.Elevator.Challenge.Domain.Models.Config;
 using DVT.Elevator.Challenge.DomainLogic.Service;
 using DVT.Elevator.Challenge.Domain.Models.Base;
 using Microsoft.Extensions.DependencyInjection;
+using DVT.Elevator.Challenge.BackgoundSevices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -25,7 +26,8 @@ var _host = Host.CreateDefaultBuilder().ConfigureServices(services => {
         config.GetValue<int>("NumberOfFloors"),
         config.GetValue<int>("NumberOfPeople"),
         config.GetSection("ElevatorConfig").Get<BaseElevatorConfig[]>() ?? []
-        )) ;
+        ));
+    services.AddHostedService<ElevatorBackgroundService>();
 }).Build();
 
 // Start the application 
