@@ -7,7 +7,7 @@ namespace DVT.Elevator.Challenge.Domain.Models.Base
     {
         public required int ZoneLocated { get; set; }
         public required string ElevatorDesignation { get; set; }
-        public int CurrentLevel { get; set; }
+        public int CurrentFloor { get; set; }
         public int MaxLevel { get; set; }
         public MovementEnum Movement { get; set; }
         public required float WeightCapacity { get; set; }

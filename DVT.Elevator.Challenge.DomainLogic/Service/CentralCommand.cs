@@ -5,6 +5,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
 {
     public class CentralCommand: ICentralCommand
     {
+        private static bool running = true;
         public static ConsoleInfo consoleInfo = new ConsoleInfo();
         private Thread _consoleWriter = new Thread(new ThreadStart(ConsoleWriter));
         private static IElevatorService? _elevatorService; 
@@ -20,7 +21,8 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
             _consoleWriter.Start();
             consoleInfo.outputBuffer.Add("Running.");
             _elevatorService?.DisplayElevatorPosition().Wait();
-            while (true)
+            // Keeping Console Ready and waiting for
+            while (running)
             {
                 var key = Console.ReadKey(true);
                 lock (consoleInfo)
@@ -35,8 +37,16 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                     }
                 }
             }
+
+            if (!running) 
+            { 
+                Environment.Exit(0);
+            }
         }
 
+        /// <summary>
+        /// Console Writing commands and request results
+        /// </summary>
         private static void ConsoleWriter()
         {
             while (true)
@@ -74,27 +84,37 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                         switch (consoleInfo.lastCommand)
                         {
                             case "ls":
+                            case "list":
                                 _elevatorService?.DisplayElevatorPosition().Wait();
                                 break;
                             case "disable":
+                            case "d":
                                 consoleInfo.lastResult.Append("Elevator Disabled");
                                 break;
                             case "enable":
+                            case "e":
                                 consoleInfo.lastResult.Append("Elevator Enabled");
                                 break;
                             case "cls":
+                            case "clr":
+                            case "clear":
                                 consoleInfo.outputBuffer.Clear();
                                 consoleInfo.outputBuffer.Add("Running.");
                                 consoleInfo.lastResult.Clear();
-                                break;                                    
+                                break;
+                            case "close":
+                            case "exit":
+                            case "stop":
+                                running = false;
+                                break;
                             case "?":
                                 consoleInfo.lastResult.AppendLine("Available commands are:");
-                                consoleInfo.lastResult.AppendLine("==========================================");
-                                consoleInfo.lastResult.AppendLine("ls       - List All Elevators and Details");
-                                consoleInfo.lastResult.AppendLine("disable  - Disable Elevators");
-                                consoleInfo.lastResult.AppendLine("enable   - Enable Elevators");
-                                consoleInfo.lastResult.AppendLine("cls      - Clear Console");
-                                consoleInfo.lastResult.AppendLine("==========================================");
+                                consoleInfo.lastResult.AppendLine("=======================================================");
+                                consoleInfo.lastResult.AppendLine("ls | list             - List All Elevators and Details");
+                                consoleInfo.lastResult.AppendLine("d | disable           - Disable Elevators");
+                                consoleInfo.lastResult.AppendLine("e | enable            - Enable Elevators");
+                                consoleInfo.lastResult.AppendLine("clr| cls | clear      - Clear Console");
+                                consoleInfo.lastResult.AppendLine("=======================================================");
                                 consoleInfo.lastResult.AppendLine("Note! Logs limit to 5000 characters");
                                 break;
                             default:
@@ -105,7 +125,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                     Console.WriteLine(consoleInfo.lastCommand);
                     Console.WriteLine(consoleInfo.lastResult);
                     Console.WriteLine();
-                    Console.Write(">");
+                    Console.Write("Command>");
                     Console.WriteLine(consoleInfo.sbRead.ToString());
                     Console.WriteLine();
                     Console.WriteLine();

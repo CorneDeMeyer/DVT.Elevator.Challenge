@@ -10,7 +10,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Interface
         Task DisplayElevatorPosition();
         Task CheckElevators();
         Task<ElevatorReponse> ElevatorRequest(int zone, int floor);
-        Task<ElevatorReponse> ElevatorDoorsClosed(decimal weight);
+        Task<ElevatorReponse> ElevatorDoorsClosed(int zone, string designation, decimal weight);
         Task<ElevatorReponse> ElevatorDisableRequest(int zone, string designation);
         Task<ElevatorReponse> ElevatorEnableRequest(int zone, string designation);
     }

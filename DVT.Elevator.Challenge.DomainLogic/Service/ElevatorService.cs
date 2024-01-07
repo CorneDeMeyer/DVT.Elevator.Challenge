@@ -1,4 +1,5 @@
 ﻿using DVT.Elevator.Challenge.Domain;
+using DVT.Elevator.Challenge.Domain.Enums;
 using DVT.Elevator.Challenge.Domain.Models;
 using DVT.Elevator.Challenge.Domain.Models.Base;
 using DVT.Elevator.Challenge.Domain.Models.Config;
@@ -10,6 +11,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
     {
         private readonly AppConfiguration _config = config;
         private List<BaseElevator> _elevators = [];
+        private Queue<Person> _queue = [];
 
         public async Task Setup()
         {
@@ -29,7 +31,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                         WeightCapacity = elevator.WeightCapacity,
                         PersonCapacity = elevator.PersonCapacity,
                         MaxLevel = elevator.MaxLevelReached,
-                        CurrentLevel = rand.Next(_config.NumberOfFloors),
+                        CurrentFloor = rand.Next(_config.NumberOfFloors),
                         PeopleInLift = new List<Person>(),
                         ZoneLocated = elevator.LocationZone,
                         Movement = Domain.Enums.MovementEnum.Stationery,
@@ -57,7 +59,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                 CentralCommand.consoleInfo.lastResult.AppendLine($"Zone: {elevator.ZoneLocated.ToString()}");
                 if (elevator.Enabled)
                 {
-                    CentralCommand.consoleInfo.lastResult.AppendLine($"Currently On Level: {elevator.CurrentLevel} out of {elevator.MaxLevel}");
+                    CentralCommand.consoleInfo.lastResult.AppendLine($"Currently On Level: {elevator.CurrentFloor} out of {elevator.MaxLevel}");
                     CentralCommand.consoleInfo.lastResult.AppendLine($"People currently in Lift: {elevator.PeopleInLift?.Count}");
                     CentralCommand.consoleInfo.lastResult.AppendLine($"Movement Status: {elevator.Movement.GetMovement(elevator.PeopleInLift?.Count)}");
                 }
@@ -76,25 +78,25 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
             switch (elevatorOnTheMove.Movement)
             {
                 case Domain.Enums.MovementEnum.Down:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == 0)
+                    elevatorOnTheMove.CurrentFloor -= 1;
+                    if (elevatorOnTheMove.CurrentFloor == 0)
                     {
                         elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
                     }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
+                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentFloor);
                     break;
                 case Domain.Enums.MovementEnum.Up:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == elevatorOnTheMove.MaxLevel)
+                    elevatorOnTheMove.CurrentFloor -= 1;
+                    if (elevatorOnTheMove.CurrentFloor == elevatorOnTheMove.MaxLevel)
                     {
                         elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
                     }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
+                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentFloor);
                     break;
                 default:
                     break;
             }
-            CentralCommand.consoleInfo.outputBuffer.Add($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentLevel}, elevator is " +
+            CentralCommand.consoleInfo.outputBuffer.Add($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentFloor}, elevator is " +
                         $"{elevatorOnTheMove?.Movement.GetMovement(elevatorOnTheMove?.PeopleInLift?.Count)} with ${elevatorOnTheMove?.PeopleInLift?.Count} still on");
         }
 
@@ -115,7 +117,9 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
 
                 }
                 else
-                { }
+                {
+                    respone.Message = "All Elevators at capacity, please wait a moment";
+                }
             }
 
             return Task.FromResult(respone);
@@ -123,15 +127,63 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
 
         public Task<ElevatorReponse> ElevatorDisableRequest(int zone, string designation)
         {
-            throw new NotImplementedException();
+            var response = new ElevatorReponse
+            { 
+                Floor = 0,
+                Zone = zone,
+                Message = "Elevator not found"
+            };
+
+            var elevator = _elevators.FirstOrDefault(elevator => elevator.ZoneLocated == zone && elevator.ElevatorDesignation.Equals(designation, StringComparison.CurrentCulture));
+            if (elevator != null)
+            {
+                elevator.Enabled = false;
+                response.Floor = elevator.CurrentFloor;
+                response.Zone = zone;
+                if (!elevator.Enabled)
+                {
+                    response.Message = $"{elevator.ElevatorDesignation} is already out of service";
+                }
+                else
+                {
+                    response.Movement = MovementEnum.Stationery;
+                    response.Message = $"{elevator.ElevatorDesignation} Elevator has been stopped on floor {elevator.CurrentFloor}";
+                }
+            }
+
+            return Task.FromResult(response);
         }
 
         public Task<ElevatorReponse> ElevatorEnableRequest(int zone, string designation)
         {
-            throw new NotImplementedException();
+            var response = new ElevatorReponse
+            {
+                Floor = 0,
+                Zone = zone,
+                Message = "Elevator not found"
+            };
+
+            var elevator = _elevators.FirstOrDefault(elevator => elevator.ZoneLocated == zone && elevator.ElevatorDesignation.Equals(designation, StringComparison.CurrentCulture));
+            if (elevator != null)
+            {
+                elevator.Enabled = true;
+                response.Floor = elevator.CurrentFloor;
+                response.Zone = zone;
+
+                if (elevator.Enabled)
+                {
+                    response.Message = $"{elevator.ElevatorDesignation} is already in service";
+                }
+                else
+                {
+                    response.Message = $"{elevator.ElevatorDesignation} Elevator is placed back into service on floor {elevator.CurrentFloor}";
+                }
+            }
+
+            return Task.FromResult(response);
         }
 
-        public Task<ElevatorReponse> ElevatorDoorsClosed(decimal weight)
+        public Task<ElevatorReponse> ElevatorDoorsClosed(int zone, string designation, decimal weight)
         {
             throw new NotImplementedException();
         }
