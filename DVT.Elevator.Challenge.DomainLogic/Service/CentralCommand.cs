@@ -1,102 +1,137 @@
 ﻿using DVT.Elevator.Challenge.DomainLogic.Interface;
-using DVT.Elevator.Challenge.Domain.Models.Config;
-using DVT.Elevator.Challenge.Domain.Models.Base;
 using DVT.Elevator.Challenge.Domain.Models;
-using DVT.Elevator.Challenge.Domain;
 
 namespace DVT.Elevator.Challenge.DomainLogic.Service
 {
-    public class CentralCommand : ICentralCommand
+    public class CentralCommand: ICentralCommand
     {
-        private readonly AppConfiguration _config;
+        private static bool running = true;
+        public static ConsoleInfo consoleInfo = new ConsoleInfo();
+        private Thread _consoleWriter = new Thread(new ThreadStart(ConsoleWriter));
+        private static IElevatorService? _elevatorService; 
 
-        private List<BaseElevator> _elevators;
-
-        public CentralCommand(AppConfiguration config)
-        {
-            _config = config;
-            _elevators = [];
+        public CentralCommand(IElevatorService elevatorService)
+        { 
+            _elevatorService = elevatorService;
+            _elevatorService.Setup();
         }
 
-        // Setup Elevators and People to use elevators
-        public async Task Setup()
+        public void Start()
         {
-            await SetupElevators();
-            await DisplayElevatorPosition();
-        }
-
-        private Task SetupElevators()
-        {
-            var rand = new Random();
-            if (_config.ElevatorConfig.Length > 0)
+            _consoleWriter.Start();
+            consoleInfo.outputBuffer.Add("Running.");
+            _elevatorService?.DisplayElevatorPosition().Wait();
+            // Keeping Console Ready and waiting for
+            while (running)
             {
-                foreach (var elevator in _config.ElevatorConfig)
+                var key = Console.ReadKey(true);
+                lock (consoleInfo)
                 {
-                    _elevators.Add(new ElevatorModel
+                    if (key.Key == ConsoleKey.Enter)
                     {
-                        ElevatorDesignation = elevator.ElevatorDesignation,
-                        WeightCapacity = elevator.WeightCapacity,
-                        PersonCapacity = elevator.PersonCapacity,
-                        MaxLevel = elevator.MaxLevelReached,
-                        CurrentLevel = rand.Next(_config.NumberOfFloors),
-                        PeopleInLift = new List<Person>(),
-                        ZoneLocated = elevator.LocationZone,
-                        Movement = Domain.Enums.MovementEnum.Stationery
-                    });
+                        consoleInfo.commandReaty = true;
+                    }
+                    else
+                    {
+                        consoleInfo.sbRead.Append(key.KeyChar.ToString());
+                    }
                 }
             }
-            return Task.CompletedTask;
-        }
 
-        public async Task MoveElevator(BaseElevator elevatorOnTheMove)
-        {
-            int? peopleGettingOff = 0;
-            switch (elevatorOnTheMove.Movement)
-            {
-                case Domain.Enums.MovementEnum.Down:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == 0)
-                    {
-                        elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
-                    }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
-                    break;
-                case Domain.Enums.MovementEnum.Up:
-                    elevatorOnTheMove.CurrentLevel -= 1;
-                    if (elevatorOnTheMove.CurrentLevel == elevatorOnTheMove.MaxLevel)
-                    {
-                        elevatorOnTheMove.Movement = Domain.Enums.MovementEnum.Stationery;
-                    }
-                    peopleGettingOff = elevatorOnTheMove?.PeopleInLift?.RemoveAll(p => p.DesignatedFloor == elevatorOnTheMove.CurrentLevel);
-
-                    break;
-                default:
-                    break;
+            if (!running) 
+            { 
+                Environment.Exit(0);
             }
-            await Console.Out.WriteLineAsync($"{peopleGettingOff} people are getting off on Floor {elevatorOnTheMove?.CurrentLevel}, elevator is " +
-                        $"{elevatorOnTheMove?.Movement.GetMovement(elevatorOnTheMove?.PeopleInLift?.Count)} with ${elevatorOnTheMove?.PeopleInLift?.Count} still on");
         }
 
-        public async Task PersonRequest(Person person)
+        /// <summary>
+        /// Console Writing commands and request results
+        /// </summary>
+        private static void ConsoleWriter()
         {
-
-            await Console.Out.WriteLineAsync();
-        }
-
-        public Task DisplayElevatorPosition()
-        {
-            foreach (var elevator in _elevators) 
+            while (true)
             {
-                elevator.ElevatorStatus();
-            }
-            return Task.CompletedTask;
-        }
-
-        public async Task CheckElevators()
-        {
-            foreach (var elevator in _elevators.Where(x => x.Movement != Domain.Enums.MovementEnum.Stationery))
-            {
-                await MoveElevator(elevator);
+                lock (consoleInfo)
+                {
+                    Console.Clear();
+                    if (consoleInfo.lastResult.Length > 5000)
+                    {
+                        consoleInfo.lastResult.Clear();
+                        if (!string.IsNullOrEmpty(consoleInfo.lastCommand))
+                        {
+                            consoleInfo.lastCommand = string.Empty;
+                        }
+                    }
+                    if (consoleInfo.outputBuffer[0].Length > 20)
+                    {
+                        consoleInfo.outputBuffer[0] = "Currently Running.";
+                    }
+                    else
+                    {
+                        consoleInfo.outputBuffer[0] += ".";
+                    }
+                    foreach (var item in consoleInfo.outputBuffer)
+                    {
+                        Console.WriteLine(item);
+                    }
+                    Console.WriteLine("--------------------------------------------------------------");
+                    if (consoleInfo.commandReaty)
+                    {
+                        consoleInfo.commandReaty = false;
+                        consoleInfo.lastCommand = consoleInfo.sbRead.ToString();
+                        consoleInfo.sbRead.Clear();
+                        consoleInfo.lastResult.Clear();
+                        switch (consoleInfo.lastCommand)
+                        {
+                            case "ls":
+                            case "list":
+                                _elevatorService?.DisplayElevatorPosition().Wait();
+                                break;
+                            case "disable":
+                            case "d":
+                                consoleInfo.lastResult.Append("Elevator Disabled");
+                                break;
+                            case "enable":
+                            case "e":
+                                consoleInfo.lastResult.Append("Elevator Enabled");
+                                break;
+                            case "cls":
+                            case "clr":
+                            case "clear":
+                                consoleInfo.outputBuffer.Clear();
+                                consoleInfo.outputBuffer.Add("Running.");
+                                consoleInfo.lastResult.Clear();
+                                break;
+                            case "close":
+                            case "exit":
+                            case "stop":
+                                running = false;
+                                break;
+                            case "?":
+                                consoleInfo.lastResult.AppendLine("Available commands are:");
+                                consoleInfo.lastResult.AppendLine("=======================================================");
+                                consoleInfo.lastResult.AppendLine("ls | list             - List All Elevators and Details");
+                                consoleInfo.lastResult.AppendLine("d | disable           - Disable Elevators");
+                                consoleInfo.lastResult.AppendLine("e | enable            - Enable Elevators");
+                                consoleInfo.lastResult.AppendLine("clr| cls | clear      - Clear Console");
+                                consoleInfo.lastResult.AppendLine("=======================================================");
+                                consoleInfo.lastResult.AppendLine("Note! Logs limit to 5000 characters");
+                                break;
+                            default:
+                                consoleInfo.lastResult.Append("invalid command, type ? to see command list");
+                                break;
+                        }
+                    }
+                    Console.WriteLine(consoleInfo.lastCommand);
+                    Console.WriteLine(consoleInfo.lastResult);
+                    Console.WriteLine();
+                    Console.Write("Command>");
+                    Console.WriteLine(consoleInfo.sbRead.ToString());
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+                }
+                Thread.Sleep(1000);
             }
         }
     }
