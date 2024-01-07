@@ -6,6 +6,7 @@
         public required int LocationZone { get; set; }
         public required float WeightCapacity { get; set; }
         public required int PersonCapacity { get; set; }
-        public required int MaxLevelReached { get; set;}
+        public required int MaxLevelReached { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }
