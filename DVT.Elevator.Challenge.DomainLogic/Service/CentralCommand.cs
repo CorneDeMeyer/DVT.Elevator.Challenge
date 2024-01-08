@@ -81,45 +81,40 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                         consoleInfo.lastCommand = consoleInfo.sbRead.ToString();
                         consoleInfo.sbRead.Clear();
                         consoleInfo.lastResult.Clear();
-                        switch (consoleInfo.lastCommand)
+                        if (!ContrainsCustomCommands(consoleInfo.lastCommand))
                         {
-                            case "ls":
-                            case "list":
-                                _elevatorService?.DisplayElevatorPosition().Wait();
-                                break;
-                            case "disable":
-                            case "d":
-                                consoleInfo.lastResult.Append("Elevator Disabled");
-                                break;
-                            case "enable":
-                            case "e":
-                                consoleInfo.lastResult.Append("Elevator Enabled");
-                                break;
-                            case "cls":
-                            case "clr":
-                            case "clear":
-                                consoleInfo.outputBuffer.Clear();
-                                consoleInfo.outputBuffer.Add("Running.");
-                                consoleInfo.lastResult.Clear();
-                                break;
-                            case "close":
-                            case "exit":
-                            case "stop":
-                                running = false;
-                                break;
-                            case "?":
-                                consoleInfo.lastResult.AppendLine("Available commands are:");
-                                consoleInfo.lastResult.AppendLine("=======================================================");
-                                consoleInfo.lastResult.AppendLine("ls | list             - List All Elevators and Details");
-                                consoleInfo.lastResult.AppendLine("d | disable           - Disable Elevators");
-                                consoleInfo.lastResult.AppendLine("e | enable            - Enable Elevators");
-                                consoleInfo.lastResult.AppendLine("clr| cls | clear      - Clear Console");
-                                consoleInfo.lastResult.AppendLine("=======================================================");
-                                consoleInfo.lastResult.AppendLine("Note! Logs limit to 5000 characters");
-                                break;
-                            default:
-                                consoleInfo.lastResult.Append("invalid command, type ? to see command list");
-                                break;
+                            switch (consoleInfo.lastCommand)
+                            {
+                                case "ls":
+                                case "list":
+                                    _elevatorService?.DisplayElevatorPosition().Wait();
+                                    break;
+                                case "cls":
+                                case "clr":
+                                case "clear":
+                                    consoleInfo.outputBuffer.Clear();
+                                    consoleInfo.outputBuffer.Add("Running.");
+                                    consoleInfo.lastResult.Clear();
+                                    break;
+                                case "close":
+                                case "exit":
+                                case "stop":
+                                    running = false;
+                                    break;
+                                case "?":
+                                    consoleInfo.lastResult.AppendLine("Available commands are:");
+                                    consoleInfo.lastResult.AppendLine("=======================================================");
+                                    consoleInfo.lastResult.AppendLine("ls | list                          - List All Elevators and Details");
+                                    consoleInfo.lastResult.AppendLine("d | disable [zone] [designation]   - Disable Elevators");
+                                    consoleInfo.lastResult.AppendLine("e | enable  [zone] [designation]   - Enable Elevators");
+                                    consoleInfo.lastResult.AppendLine("clr| cls | clear                   - Clear Console");
+                                    consoleInfo.lastResult.AppendLine("=======================================================");
+                                    consoleInfo.lastResult.AppendLine("Note! Logs limit to 5000 characters");
+                                    break;
+                                default:
+                                    consoleInfo.lastResult.Append("invalid command, type ? to see command list");
+                                    break;
+                            }
                         }
                     }
                     Console.WriteLine(consoleInfo.lastCommand);
@@ -133,6 +128,36 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
                 }
                 Thread.Sleep(1000);
             }
+        }
+
+        private static bool ContrainsCustomCommands(string command)
+        {
+            var commandParts = command.Split(' ');
+            if (commandParts.Length > 2)
+            {
+                var zone = int.TryParse(commandParts[1], out var zoneInt);
+                var designation = commandParts[2];
+                if (command.Contains("enable", StringComparison.OrdinalIgnoreCase) || command.StartsWith('e'))
+                {
+                    consoleInfo.lastResult.Append($"Attempting to Enable Elevator: {designation}");
+                    var enableResponse = _elevatorService?.ElevatorEnableRequest(zoneInt, designation);
+                    enableResponse?.Wait();
+                    consoleInfo.lastResult.Append($"Elevator {designation} Message: {enableResponse?.Result.Message}");
+                }
+                else if (command.Contains("disable", StringComparison.OrdinalIgnoreCase) || command.StartsWith('d'))
+                {
+                    consoleInfo.lastResult.Append($"Attempting to Disable Elevator: {designation}");
+                    var enableResponse = _elevatorService?.ElevatorDisableRequest(zoneInt, designation);
+                    enableResponse?.Wait();
+                    consoleInfo.lastResult.Append($"Elevator {designation} Message: {enableResponse?.Result.Message}");
+                }
+                else
+                {
+                    consoleInfo.lastResult.Append($"{command} is not recognized");
+                    consoleInfo.lastResult.Append("invalid command, type ? to see command list");
+                }
+            }
+            return false;
         }
     }
 }
