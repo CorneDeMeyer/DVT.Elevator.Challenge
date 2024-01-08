@@ -4,7 +4,7 @@ namespace DVT.Elevator.Challenge.DomainLogic.Interface
 {
     public interface IElevatorClient
     {
-        Task<ElevatorReponse> RequestElevator(int zone, int floor);
+        Task<ElevatorReponse> RequestElevator(int zone, int currentFloor, int requestedFloor, string? userId);
         Task<ElevatorReponse> RequestElevatorDisable(int zone, string designation);
         Task<ElevatorReponse> RequestElevatorEnable(int zone, string designation);
     }
