@@ -1,4 +1,5 @@
 ﻿using DVT.Elevator.Challenge.Domain.Enums;
+using DVT.Elevator.Challenge.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace DVT.Elevator.Challenge.Domain
 {
     public static class Helper
     {
-        public static string GetMovement(this MovementEnum movement, int? PersonOnBoard)
+        public static string GetMovement(this MovementEnum movement, int? PersonOnBoard = 0)
         {
             switch (movement)
             {
@@ -24,6 +25,20 @@ namespace DVT.Elevator.Challenge.Domain
                 default:
                     return "Unknown";
             }
+        }
+
+        public static int DetermineGoingToFloor(this MovementEnum movement, int currentLevel, List<ElevatorRequest>? requests)
+        {
+            if (movement == MovementEnum.Down)
+            {
+                return requests?.OrderByDescending(x => x.RequestedFloor)?.FirstOrDefault()?.RequestedFloor ?? currentLevel;
+            }
+            else if (movement == MovementEnum.Up)
+            {
+                return requests?.OrderBy(x => x.RequestedFloor)?.FirstOrDefault()?.RequestedFloor ?? currentLevel;
+            }
+
+            return currentLevel;
         }
     }
 }

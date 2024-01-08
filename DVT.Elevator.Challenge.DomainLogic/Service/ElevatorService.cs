@@ -190,27 +190,13 @@ namespace DVT.Elevator.Challenge.DomainLogic.Service
             elevator.CurrentWeight = weight;
             if (elevator.CurrentWeight <= elevator.WeightCapacity)
             {
-                var goingToFloor = DetermineGoingToFloor(elevator.Movement, elevator.Requests);
+                var goingToFloor = elevator.Movement.DetermineGoingToFloor(elevator.CurrentFloor, elevator.Requests);
                 response.ElevatorRequestAccepted = ElevatorRequestAcceptanceEnum.Accepted;
                 response.Message = $"Elevator Proceeding to Floor {goingToFloor.ToString()}";
                 var removedRequests = elevator?.Requests?.RemoveAll(req => req.RequestedFloor == goingToFloor);
             }
 
             return Task.FromResult(response);
-        }
-
-        private int DetermineGoingToFloor(MovementEnum movement, List<ElevatorRequest>? requests)
-        {
-            if (movement == MovementEnum.Down)
-            {
-                return requests?.OrderByDescending(x => x.RequestedFloor)?.FirstOrDefault()?.RequestedFloor ?? 0;
-            }
-            else if (movement == MovementEnum.Up)
-            {
-                return requests?.OrderBy(x => x.RequestedFloor)?.FirstOrDefault()?.RequestedFloor ?? 0;
-            }
-
-            return 0;
         }
 
         private Task SetupElevators()

@@ -1,5 +1,4 @@
 ﻿using DVT.Elevator.Challenge.Domain.Enums;
-using System.Collections.Concurrent;
 
 namespace DVT.Elevator.Challenge.Domain.Models.Base
 {

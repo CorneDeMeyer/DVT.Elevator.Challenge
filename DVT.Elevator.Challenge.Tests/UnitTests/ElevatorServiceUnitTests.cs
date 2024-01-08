@@ -11,7 +11,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
         private readonly int _nonFunctionalZone = -100;
         private readonly string _nonFunctionalElevatorDesignation = "This elevator should not exists";
 
-        [Fact(DisplayName = "Elevator Setup - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Setup - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task CheckSetup_Succeeded()
         {
             var service = GetService();
@@ -25,7 +26,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.True(elevators.Count == AppConfigurationFakeData.GetElevatorConfig().Length);
         }
 
-        [Fact(DisplayName = "Elevator Disable - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Disable - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Disable_Elevator_Success()
         {
             var service = GetService();
@@ -39,7 +41,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains(requestResult.Message.ToUpper(), $"{elevator.ElevatorDesignation.ToUpper()} IS ALREADY OUT OF SERVICE");
         }
 
-        [Fact(DisplayName = "Elevator Disable - Failure")]
+        [Fact(DisplayName = "Service Request - Elevator Disable - Failure")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Disable_Elevator_Failure()
         {
             var service = GetService();
@@ -52,7 +55,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.True(requestResult.Message.Contains("ELEVATOR NOT FOUND", StringComparison.OrdinalIgnoreCase));
         }
 
-        [Fact(DisplayName = "Elevator Enable - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Enable - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Enable_Elevator_Success()
         {
             var service = GetService();
@@ -67,7 +71,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains("ELEVATOR IS PLACED BACK INTO SERVICE ON FLOOR", requestResult.Message.ToUpper());
         }
 
-        [Fact(DisplayName = "Elevator Enable - Failure")]
+        [Fact(DisplayName = "Service Request - Elevator Enable - Failure")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Enable_Elevator_Failure()
         {
             var service = GetService();
@@ -80,7 +85,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.True(requestResult.Message.Equals("ELEVATOR NOT FOUND", StringComparison.OrdinalIgnoreCase));
         }
 
-        [Fact(DisplayName = "Elevator Request Up - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Request Up - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Elevator_Request_Up_Success()
         {
             var service = GetService();
@@ -95,7 +101,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains("IS GOING UP FROM FLOOR", requestResult.Message.ToUpper());
         }
 
-        [Fact(DisplayName = "Elevator Request Down - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Request Down - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Elevator_Request_Down_Success()
         {
             var service = GetService();
@@ -110,7 +117,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains("IS GOING DOWN TO FLOOR", requestResult.Message.ToUpper());
         }
 
-        [Fact(DisplayName = "Elevator Doors Closed - Success")]
+        [Fact(DisplayName = "Service Request - Elevator Doors Closed - Success")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Elevator_Doors_Closed_Success()
         {
             var service = GetService();
@@ -125,7 +133,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains("ELEVATOR PROCEEDING TO FLOOR", requestResult.Message.ToUpper());
         }
 
-        [Fact(DisplayName = "Elevator Doors Closed - Failure (No Elevator Found)")]
+        [Fact(DisplayName = "Service Request - Elevator Doors Closed - Failure (No Elevator Found)")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Elevator_Doors_Closed_Failure_No_Elevator()
         {
             var service = GetService();
@@ -138,7 +147,8 @@ namespace DVT.Elevator.Challenge.Tests.UnitTests
             Assert.Contains("NO SUCH ELEVATOR FOUND", requestResult.Message.ToUpper());
         }
 
-        [Fact(DisplayName = "Elevator Doors Closed - Failure (Overweight)")]
+        [Fact(DisplayName = "Service Request - Elevator Doors Closed - Failure (Overweight)")]
+        [Trait("Server", "Unit tests for Elevator calls")]
         public async Task Check_Elevator_Doors_Closed_Failure_Overweight()
         {
             var service = GetService();
