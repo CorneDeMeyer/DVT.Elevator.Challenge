@@ -5,5 +5,6 @@
         Down = -1,
         Stationery = 0,
         Up = 1,
+        Unknown = 99
     }
 }

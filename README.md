@@ -1,5 +1,5 @@
-# TITLE
-Short Description
+# DVT Elevator Challenge
+.NET 8 C# Console Application that simulates the movement of elevators in a large builing, with the aim to optimize transport of people and goods efficiently.
 
 ## Tables Of Content
 - [Badges](#Badges)
@@ -11,7 +11,7 @@ Short Description
 - [License](#License)
 
 ## Badges
-![Build Status](https://travis-ci.org/CorneDeMeyer/DVT.Elevator.Challenge.svg?branch=main)
+![Build Status](https://github.com/CorneDeMeyer/DVT.Elevator.Challenge/actions/workflows/dotnet.yml/badge.svg?branch=main)
 
 ## Technology
 Making use of the following Libraries:
